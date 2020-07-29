@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.FileInputStream;
@@ -16,6 +17,9 @@ public class FileUtil {
     private static final String TAG = "FileUtil";
 
     public static boolean writeFile(Context context, String fileName, String content) {
+        if (context == null || TextUtils.isEmpty(fileName) || TextUtils.isEmpty(content)){
+            return false;
+        }
         try {
             FileOutputStream outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
@@ -32,6 +36,9 @@ public class FileUtil {
     }
 
     public static boolean writeImage(Context context, Bitmap bitmap, String fileName) {
+        if (context == null || TextUtils.isEmpty(fileName) || bitmap == null){
+            return false;
+        }
         try {
             FileOutputStream outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
             OutputStreamWriter writer = new OutputStreamWriter(outputStream);
@@ -49,6 +56,9 @@ public class FileUtil {
 
     public static String readFile(Context context, String fileName) {
         String ret = "";
+        if (context == null || TextUtils.isEmpty(fileName)){
+            return ret;
+        }
         try {
             FileInputStream inputStream = context.openFileInput(fileName);
             if (inputStream != null) {
@@ -74,11 +84,15 @@ public class FileUtil {
             fileInputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
         return bitmap;
     }
 
     public static Uri getFileUri(Context context, String filename) {
+        if (TextUtils.isEmpty(filename)){
+            return null;
+        }
         Uri uri = Uri.fromFile(context.getFilesDir());
         return Uri.withAppendedPath(uri, filename);
     }

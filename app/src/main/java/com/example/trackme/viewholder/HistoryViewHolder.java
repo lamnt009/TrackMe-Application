@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.trackme.R;
 import com.example.trackme.database.Record;
+import com.example.trackme.utils.DateUtils;
 import com.example.trackme.utils.FileUtil;
 
 public class HistoryViewHolder extends RecyclerView.ViewHolder {
@@ -28,9 +29,9 @@ public class HistoryViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void updateView(Record record, Context context) {
-        Glide.with(context).load(FileUtil.getFileUri(context, record.getMapImageName())).into(imgMapRoute);
-        tvDistance.setText(record.getDistance());
-        tvAvgSpeed.setText(record.getAvgSpeed());
-        tvDuration.setText(record.getDuration());
+        Glide.with(context).load(FileUtil.getFileUri(context, record.getMapImageName())).placeholder(context.getDrawable(R.drawable.ic_broken_image)).into(imgMapRoute);
+        tvDistance.setText(String.format(context.getString(R.string.distane_format), record.getDistance()));
+        tvAvgSpeed.setText(String.format(context.getString(R.string.avg_speed_format), record.getAvgSpeed()));
+        tvDuration.setText(DateUtils.convertMinToHH(record.getDuration()));
     }
 }

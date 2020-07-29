@@ -10,7 +10,7 @@ public class RecordDetail {
     private String recordId;  // MMDDYYYYHHMMSS
     private double routeLat;
     private double routeLng;
-    private int timeInMili;
+    private long timeInMili;
 
     public String getRecordId() {
         return recordId;
@@ -36,11 +36,11 @@ public class RecordDetail {
         this.routeLng = routeLng;
     }
 
-    public int getTimeInMili() {
+    public long getTimeInMili() {
         return timeInMili;
     }
 
-    public void setTimeInMili(int timeInMili) {
+    public void setTimeInMili(long timeInMili) {
         this.timeInMili = timeInMili;
     }
 

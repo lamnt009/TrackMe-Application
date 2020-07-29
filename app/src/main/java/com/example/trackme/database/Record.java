@@ -4,16 +4,18 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(tableName = "record_table")
-public class Record {
+public class Record implements Serializable {
     @PrimaryKey
     @NonNull
-    private String recordId;  // MMDDYYYYHHMMSS
+    private String recordId ;  // MMDDYYYYHHMMSS
     private String distance; //
-    private String duration;
+    private long duration;
     private String avgSpeed;
     private String mapImageName;
-    private String insertTime;
+    private long insertTime;
 
     @NonNull
     public String getRecordId() {
@@ -32,11 +34,11 @@ public class Record {
         this.distance = distance;
     }
 
-    public String getDuration() {
+    public long getDuration() {
         return duration;
     }
 
-    public void setDuration(String duration) {
+    public void setDuration(long duration) {
         this.duration = duration;
     }
 
@@ -56,11 +58,23 @@ public class Record {
         this.mapImageName = mapImageName;
     }
 
-    public String getInsertTime() {
+    public long getInsertTime() {
         return insertTime;
     }
 
-    public void setInsertTime(String insertTime) {
+    public void setInsertTime(long insertTime) {
         this.insertTime = insertTime;
+    }
+
+    @Override
+    public String toString() {
+        return "Record{" +
+                "recordId='" + recordId + '\'' +
+                ", distance='" + distance + '\'' +
+                ", duration=" + duration +
+                ", avgSpeed='" + avgSpeed + '\'' +
+                ", mapImageName='" + mapImageName + '\'' +
+                ", insertTime=" + insertTime +
+                '}';
     }
 }

@@ -2,6 +2,8 @@ package com.example.trackme.repositories;
 
 import android.app.Application;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.trackme.database.RecordDetail;
 import com.example.trackme.database.RecordDetailDao;
 import com.example.trackme.database.RecordRoomDatabase;
@@ -18,7 +20,7 @@ public class RecordDetailRepository {
         mRecordDetailDao = db.recordDetailDao();
     }
 
-    public List<RecordDetail> getRecordDetailById(String recordId) {
+    public LiveData<List<RecordDetail>> getRecordDetailById(String recordId) {
         return mRecordDetailDao.getRecordDetailByRecordId(recordId);
     }
 

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">TrackMe</string>
+
+    <string name="distane_format">%s km \n Distance</string>
+    <string name="speed_format">%s km/h \n Speed</string>
+    <string name="avg_speed_format">%s km/h \n Avg. Speed</string>
 </resources>

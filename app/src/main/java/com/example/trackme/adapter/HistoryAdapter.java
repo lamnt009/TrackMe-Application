@@ -13,8 +13,6 @@ import com.example.trackme.R;
 import com.example.trackme.database.Record;
 import com.example.trackme.viewholder.HistoryViewHolder;
 
-import java.util.List;
-
 public class HistoryAdapter extends PagedListAdapter<Record, HistoryViewHolder> {
     private Context mContext;
     public HistoryAdapter(Context context) {

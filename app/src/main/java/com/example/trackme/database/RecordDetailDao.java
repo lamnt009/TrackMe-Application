@@ -16,6 +16,9 @@ public interface RecordDetailDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(RecordDetail recordDetail);
 
-    @Query("SELECT * from record_detail_table WHERE recordId = :recordId")
+    @Query("SELECT * from record_detail_table WHERE recordId = :recordId ORDER BY routeState ASC")
     LiveData<List<RecordDetail>> getRecordDetailByRecordId(String recordId);
+
+    @Query("SELECT * from record_detail_table WHERE recordId = :recordId ORDER BY timeInMili DESC LIMIT 1 ")
+    RecordDetail getLastInsertRecord(String recordId);
 }

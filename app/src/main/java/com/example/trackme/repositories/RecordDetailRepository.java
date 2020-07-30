@@ -13,7 +13,6 @@ import java.util.List;
 public class RecordDetailRepository {
 
     private RecordDetailDao mRecordDetailDao;
-    private List<RecordDetail> mAllRecordDetailById;
 
     public RecordDetailRepository(Application application) {
         RecordRoomDatabase db = RecordRoomDatabase.getDatabase(application);
@@ -22,6 +21,10 @@ public class RecordDetailRepository {
 
     public LiveData<List<RecordDetail>> getRecordDetailById(String recordId) {
         return mRecordDetailDao.getRecordDetailByRecordId(recordId);
+    }
+
+    public RecordDetail getLastInsert(String recordId){
+        return mRecordDetailDao.getLastInsertRecord(recordId);
     }
 
     public void insert(RecordDetail detail) {

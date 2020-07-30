@@ -5,11 +5,17 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "record_detail_table")
 public class RecordDetail {
+    public static final int STATE_START = 0x0;
+    public static final int STATE_ROUTE = 0x1;
+    public static final int STATE_END = 0x2;
+
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String recordId;  // MMDDYYYYHHMMSS
     private double routeLat;
     private double routeLng;
+    private int routeNo;
+    private int routeState;
     private long timeInMili;
 
     public String getRecordId() {
@@ -50,5 +56,21 @@ public class RecordDetail {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getRouteNo() {
+        return routeNo;
+    }
+
+    public void setRouteNo(int routeNo) {
+        this.routeNo = routeNo;
+    }
+
+    public int getRouteState() {
+        return routeState;
+    }
+
+    public void setRouteState(int routeState) {
+        this.routeState = routeState;
     }
 }

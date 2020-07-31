@@ -1,4 +1,4 @@
-package com.example.trackme.database;
+package com.example.trackme.model;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
@@ -10,12 +10,12 @@ import java.io.Serializable;
 public class Record implements Serializable {
     @PrimaryKey
     @NonNull
-    private String recordId ;  // MMDDYYYYHHMMSS
-    private String distance; //
-    private long duration;
-    private String avgSpeed;
-    private String mapImageName;
-    private long insertTime;
+    private String recordId;  // MMDDYYYYHHMMSS
+    private float distance; //meter
+    private long duration; // second
+    private float avgSpeed; // m/s
+    private String mapImageName; // image name
+    private long insertTime; // insert time
 
     @NonNull
     public String getRecordId() {
@@ -26,13 +26,6 @@ public class Record implements Serializable {
         this.recordId = recordId;
     }
 
-    public String getDistance() {
-        return distance;
-    }
-
-    public void setDistance(String distance) {
-        this.distance = distance;
-    }
 
     public long getDuration() {
         return duration;
@@ -42,11 +35,11 @@ public class Record implements Serializable {
         this.duration = duration;
     }
 
-    public String getAvgSpeed() {
+    public float getAvgSpeed() {
         return avgSpeed;
     }
 
-    public void setAvgSpeed(String avgSpeed) {
+    public void setAvgSpeed(float avgSpeed) {
         this.avgSpeed = avgSpeed;
     }
 
@@ -66,13 +59,22 @@ public class Record implements Serializable {
         this.insertTime = insertTime;
     }
 
+    public void setDistance(float distance) {
+        this.distance = distance;
+    }
+
+    public float getDistance() {
+        return distance;
+    }
+
     @Override
+    @NonNull
     public String toString() {
         return "Record{" +
                 "recordId='" + recordId + '\'' +
-                ", distance='" + distance + '\'' +
+                ", distance=" + distance +
                 ", duration=" + duration +
-                ", avgSpeed='" + avgSpeed + '\'' +
+                ", avgSpeed=" + avgSpeed +
                 ", mapImageName='" + mapImageName + '\'' +
                 ", insertTime=" + insertTime +
                 '}';

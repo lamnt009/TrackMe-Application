@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">TrackMe</string>
 
-    <string name="distane_format">%s km \n Distance</string>
-    <string name="speed_format">%s km/h \n Speed</string>
-    <string name="avg_speed_format">%s km/h \n Avg. Speed</string>
+    <string name="distane_format">%.2f km \n Distance</string>
+    <string name="speed_format">%.2f km/h \n Speed</string>
+    <string name="avg_speed_format">%.2f km/h \n Avg. Speed</string>
     <string name="title_location_permission">Location</string>
     <string name="content_location_permission">We need your permission for app to work</string>
     <string name="ok_string">OK</string>

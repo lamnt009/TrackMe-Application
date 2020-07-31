@@ -1,4 +1,4 @@
-package com.example.trackme.database;
+package com.example.trackme.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;

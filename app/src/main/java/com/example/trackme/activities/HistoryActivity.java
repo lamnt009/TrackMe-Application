@@ -13,7 +13,7 @@ import android.widget.ImageButton;
 
 import com.example.trackme.R;
 import com.example.trackme.adapter.HistoryAdapter;
-import com.example.trackme.database.Record;
+import com.example.trackme.model.Record;
 import com.example.trackme.utils.Constants;
 import com.example.trackme.viewmodel.HistoryViewModel;
 

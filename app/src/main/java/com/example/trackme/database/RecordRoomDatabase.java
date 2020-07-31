@@ -6,12 +6,16 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import com.example.trackme.model.Record;
+import com.example.trackme.model.RecordDetail;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Record.class,RecordDetail.class},version = 1, exportSchema = false)
+@Database(entities = {Record.class, RecordDetail.class}, version = 1, exportSchema = false)
 public abstract class RecordRoomDatabase extends RoomDatabase {
     public abstract RecordDao recordDao();
+
     public abstract RecordDetailDao recordDetailDao();
 
     private static volatile RecordRoomDatabase INSTANCE;

@@ -10,9 +10,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.trackme.R;
-import com.example.trackme.database.Record;
+import com.example.trackme.model.Record;
 import com.example.trackme.utils.DateUtils;
 import com.example.trackme.utils.FileUtil;
+import com.example.trackme.utils.Utils;
 
 public class HistoryViewHolder extends RecyclerView.ViewHolder {
     private ImageView imgMapRoute;
@@ -30,8 +31,8 @@ public class HistoryViewHolder extends RecyclerView.ViewHolder {
 
     public void updateView(Record record, Context context) {
         Glide.with(context).load(FileUtil.getFileUri(context, record.getMapImageName())).placeholder(context.getDrawable(R.drawable.ic_broken_image)).into(imgMapRoute);
-        tvDistance.setText(String.format(context.getString(R.string.distane_format), record.getDistance()));
-        tvAvgSpeed.setText(String.format(context.getString(R.string.avg_speed_format), record.getAvgSpeed()));
+        tvDistance.setText(String.format(context.getString(R.string.distane_format), record.getDistance() / 1000));
+        tvAvgSpeed.setText(String.format(context.getString(R.string.avg_speed_format), Utils.avgSpeedKmH(record.getAvgSpeed())));
         tvDuration.setText(DateUtils.convertMinToHH(record.getDuration()));
     }
 }

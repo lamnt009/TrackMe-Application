@@ -10,7 +10,7 @@ import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 
 import com.example.trackme.R;
-import com.example.trackme.database.Record;
+import com.example.trackme.model.Record;
 import com.example.trackme.viewholder.HistoryViewHolder;
 
 public class HistoryAdapter extends PagedListAdapter<Record, HistoryViewHolder> {

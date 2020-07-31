@@ -36,7 +36,7 @@
             tools:text="0,2 km" />
 
         <TextView
-            android:id="@+id/tvStrackSpeed"
+            android:id="@+id/tvTrackSpeed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

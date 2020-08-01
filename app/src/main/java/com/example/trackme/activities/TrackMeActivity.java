@@ -159,7 +159,7 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
 
     private void updateForReview(Record record) {
         mRecordId = record.getRecordId();
-        mTrackMe.getMapSpeed().setValue(record.getAvgSpeed());
+        mTrackMe.getMapSpeed().setValue(Utils.avgSpeedKmH(record.getAvgSpeed()));
         mTrackMe.getMapDuration().setValue(record.getDuration());
     }
 

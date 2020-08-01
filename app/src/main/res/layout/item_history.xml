@@ -4,19 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="@dimen/dimen_10">
 
     <ImageView
         android:id="@+id/imgItemHistoryMapRoute"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:contentDescription="Map Snap Shot"
+        android:layout_height="@dimen/height_200"
+        android:contentDescription="@string/app_name"
         android:scaleType="fitXY" />
 
     <LinearLayout
         android:id="@+id/linerItemHistoryInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_10"
         android:orientation="horizontal">
 
         <TextView
@@ -26,6 +27,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/black"
+            android:textSize="@dimen/text_size_14"
             tools:text="0,2 km" />
 
         <TextView
@@ -35,6 +37,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/black"
+            android:textSize="@dimen/text_size_14"
             tools:text="5 km/h" />
 
         <TextView
@@ -44,6 +47,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/black"
+            android:textSize="@dimen/text_size_14"
             tools:text="01:00:00" />
     </LinearLayout>
 

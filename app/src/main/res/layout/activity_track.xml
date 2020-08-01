@@ -10,17 +10,20 @@
         android:id="@+id/trackMap"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.8"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
         tools:context=".MapsActivity" />
 
     <LinearLayout
         android:id="@+id/linearTrackStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="@dimen/dimen_10"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,6 +36,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/black"
+            android:textSize="@dimen/text_size_14"
             tools:text="0,2 km" />
 
         <TextView
@@ -42,6 +46,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/black"
+            android:textSize="@dimen/text_size_14"
             tools:text="5 km/h" />
 
         <TextView
@@ -51,6 +56,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/black"
+            android:textSize="@dimen/text_size_14"
             tools:text="01:00:00" />
     </LinearLayout>
 
@@ -58,19 +64,22 @@
         android:id="@+id/btnTrackPause"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginTop="@dimen/dimen_10"
+        android:layout_marginBottom="@dimen/dimen_10"
         android:background="@color/white"
+        android:contentDescription="@string/app_name"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearTrackStatus"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/ic_pause" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_10"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -80,16 +89,18 @@
         <ImageButton
             android:id="@+id/btnTrackResume"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="@dimen/height_50"
             android:background="@color/white"
+            android:contentDescription="@string/app_name"
             android:visibility="gone"
             app:srcCompat="@drawable/ic_refresh" />
 
         <ImageButton
             android:id="@+id/btnTrackStop"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="@dimen/height_50"
             android:background="@color/white"
+            android:contentDescription="@string/app_name"
             android:visibility="gone"
             app:srcCompat="@drawable/ic_stop" />
     </LinearLayout>

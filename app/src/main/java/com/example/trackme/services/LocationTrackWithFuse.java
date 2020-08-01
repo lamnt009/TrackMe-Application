@@ -2,17 +2,12 @@ package com.example.trackme.services;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.text.TextUtils;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -20,6 +15,11 @@ import androidx.annotation.Nullable;
 import com.example.trackme.model.RecordDetail;
 import com.example.trackme.repositories.RecordDetailRepository;
 import com.example.trackme.utils.Constants;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -27,60 +27,40 @@ import java.util.TimerTask;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.ObservableEmitter;
 
-public class LocationTrackService extends Service {
-
+public class LocationTrackWithFuse extends Service {
     private static final String TAG = "RECORD_SERVICE";
     private static final int COUNT_TIME = 1000; // 1 second
     // Minimum distance update in meter
     private static final long MIN_DISTANCE_UPDATES = 10;
     // Minimum time in millisecond
-    private static final long MIN_TIME_UPDATES = 0;
+    private static final long MIN_TIME_UPDATES = 10 * 1000;
+    private static final long FAST_INTERVAL_TIME_UPDATES = 5 * 1000;
     private long counter = 0;
     private Location mLastLocation;
     private Timer timer;
-    private LocationManager mLocationManager;
     private RecordDetailRepository mRecordDetailRepository;
     private String mRecordId = "";
     private int mRouteNo;
     private int routeState = RecordDetail.STATE_START;
-
     private ObservableEmitter<Long> pressureObserver;
     private Observable<Long> pressureObservable;
 
-    private Binder binder = new LocalBinder();
+    private FusedLocationProviderClient mFuseClient;
+    private LocationRequest locationRequest;
+
+    private Binder binder = new LocationTrackWithFuse.LocalBinder();
     private Handler handler = new Handler(msg -> {
         updateLocation();
         return true;
     });
 
-    private LocationListener locationListener = new LocationListener() {
+    private LocationCallback locationListener = new LocationCallback() {
         @Override
-        public void onLocationChanged(Location location) {
-            Log.i(TAG, "onLocationChanged");
-            if (mLastLocation == null) {
-                routeState = RecordDetail.STATE_START;
-                insertRecordDetail(location, routeState);
-            } else {
-                routeState = RecordDetail.STATE_ROUTE;
-                if (location.distanceTo(mLastLocation) >= MIN_DISTANCE_UPDATES)
-                    insertRecordDetail(location, routeState);
+        public void onLocationResult(LocationResult locationResult) {
+            Location location = locationResult.getLastLocation();
+            if (location != null) {
+                onLocationChanged(location);
             }
-            mLastLocation = location;
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
         }
     };
 
@@ -94,9 +74,9 @@ public class LocationTrackService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopTimer();
-        if (mLocationManager != null) {
+        if (mFuseClient != null) {
             try {
-                mLocationManager.removeUpdates(locationListener);
+                mFuseClient.removeLocationUpdates(locationListener);
                 mRecordDetailRepository = null;
             } catch (SecurityException e) {
                 Log.i(TAG, "No permission");
@@ -120,33 +100,47 @@ public class LocationTrackService extends Service {
     }
 
     private void initService() {
-        if (mLocationManager == null) {
-            mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (locationRequest == null) {
+            locationRequest = LocationRequest.create();
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            locationRequest.setInterval(MIN_TIME_UPDATES);
+            locationRequest.setFastestInterval(FAST_INTERVAL_TIME_UPDATES);
+        }
+        if (mFuseClient == null) {
+            mFuseClient = LocationServices.getFusedLocationProviderClient(this);
             mRecordDetailRepository = new RecordDetailRepository(getApplication());
         }
     }
 
     @SuppressLint("MissingPermission")
     public void updateLocation() {
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setPowerRequirement(Criteria.ACCURACY_FINE);
-        String provider = mLocationManager.getBestProvider(criteria, true);
-        if (!TextUtils.isEmpty(provider)) {
-            mLocationManager.requestLocationUpdates(provider, MIN_TIME_UPDATES, MIN_DISTANCE_UPDATES, locationListener);
-        }else{
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_UPDATES, MIN_DISTANCE_UPDATES, locationListener);
-        }
+        mFuseClient.requestLocationUpdates(locationRequest, locationListener, Looper.myLooper());
     }
 
     @SuppressLint("MissingPermission")
     private void getLastLocation() {
-        mLastLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (mLastLocation != null) {
-            insertRecordDetail(mLastLocation, routeState);
+        mFuseClient.getLastLocation().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                mLastLocation = task.getResult();
+                insertRecordDetail(mLastLocation, routeState);
+            } else {
+                updateLocation();
+            }
+        });
+    }
+
+    public void onLocationChanged(Location location) {
+        Log.i(TAG, "onLocationChanged");
+        if (mLastLocation == null) {
+            routeState = RecordDetail.STATE_START;
+            insertRecordDetail(location, routeState);
         } else {
-            updateLocation();
+            routeState = RecordDetail.STATE_ROUTE;
+            Log.i(TAG, "onLocationChanged" + location.distanceTo(mLastLocation));
+            if (location.distanceTo(mLastLocation) >= MIN_DISTANCE_UPDATES)
+                insertRecordDetail(location, routeState);
         }
+        mLastLocation = location;
     }
 
     public Observable<Long> observePressure() {
@@ -190,9 +184,10 @@ public class LocationTrackService extends Service {
             timer = null;
         }
     }
+
     public class LocalBinder extends Binder {
-        public LocationTrackService getService() {
-            return LocationTrackService.this;
+        public LocationTrackWithFuse getService() {
+            return LocationTrackWithFuse.this;
         }
     }
 }

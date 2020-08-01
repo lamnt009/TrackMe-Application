@@ -23,16 +23,19 @@ public class TrackMeViewModel extends AndroidViewModel {
     private MutableLiveData<Float> mapDistance;
     private MutableLiveData<Long> mapDuration;
     private MutableLiveData<Float> mapSpeed;
+    private MutableLiveData<Integer> viewMode;
 
 
-    public TrackMeViewModel(@NonNull Application application, String recordId) {
+    public TrackMeViewModel(@NonNull Application application) {
         super(application);
         mDetailRepository = new RecordDetailRepository(application);
-        mListDetail = mDetailRepository.getRecordDetailById(recordId);
     }
 
     // Record Detail table
-    public LiveData<List<RecordDetail>> getListDetail() {
+    public LiveData<List<RecordDetail>> getListDetail(String recordId) {
+        if (mListDetail == null) {
+            mListDetail = mDetailRepository.getRecordDetailById(recordId);
+        }
         return mListDetail;
     }
 
@@ -55,5 +58,12 @@ public class TrackMeViewModel extends AndroidViewModel {
             mapSpeed = new MutableLiveData<>();
         }
         return mapSpeed;
+    }
+
+    public MutableLiveData<Integer> getViewMode() {
+        if (viewMode == null) {
+            viewMode = new MutableLiveData<>();
+        }
+        return viewMode;
     }
 }

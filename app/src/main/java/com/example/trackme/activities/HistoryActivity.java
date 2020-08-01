@@ -2,6 +2,7 @@ package com.example.trackme.activities;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.ImageButton;
 
 import com.example.trackme.R;
@@ -30,24 +32,35 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        mHistoryViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
+
         ImageButton btnRecord = findViewById(R.id.btnRecord);
         btnRecord.setOnClickListener(v -> startNewRecord());
 
+
+        final HistoryAdapter adapter = new HistoryAdapter(this, mHistoryViewModel);
+
         RecyclerView recyclerView = findViewById(R.id.recyclerHistory);
-        final HistoryAdapter adapter = new HistoryAdapter(this);
         recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(linearLayoutManager);
 
-        mHistoryViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
-        updateList(adapter, recyclerView);
+        updateList(adapter, recyclerView, linearLayoutManager);
+        mHistoryViewModel.getSelectRecord().observe(this, new Observer<Record>() {
+            @Override
+            public void onChanged(Record record) {
+                if (record != null)
+                startReviewRecord(record);
+            }
+        });
     }
 
-    private void updateList(HistoryAdapter adapter, RecyclerView view) {
+    private void updateList(HistoryAdapter adapter, RecyclerView view, LinearLayoutManager manager) {
         mHistoryViewModel.getAllRecord().observe(this, records -> {
             if (records != null) {
                 adapter.submitList(records);
-                view.smoothScrollBy(0, 0);
+                new Handler().postDelayed(() -> manager.smoothScrollToPosition(view, null, 0), 2000);
             }
         });
 
@@ -58,9 +71,9 @@ public class HistoryActivity extends AppCompatActivity {
         startActivityForResult(intent, TRACK_REQUEST_CODE);
     }
 
-    private void startReviewRecord(String recordID) {
+    private void startReviewRecord(Record record) {
         Intent intent = new Intent(this, TrackMeActivity.class);
-        intent.putExtra(Constants.INTENT_KEY.SEASON_KEY, recordID);
+        intent.putExtra(Constants.INTENT_KEY.SEASON_KEY, record);
         startActivityForResult(intent, TRACK_REQUEST_CODE);
     }
 

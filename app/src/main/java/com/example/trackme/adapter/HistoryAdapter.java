@@ -12,12 +12,16 @@ import androidx.recyclerview.widget.DiffUtil;
 import com.example.trackme.R;
 import com.example.trackme.model.Record;
 import com.example.trackme.viewholder.HistoryViewHolder;
+import com.example.trackme.viewmodel.HistoryViewModel;
 
 public class HistoryAdapter extends PagedListAdapter<Record, HistoryViewHolder> {
     private Context mContext;
-    public HistoryAdapter(Context context) {
+    private HistoryViewModel historyViewModel;
+
+    public HistoryAdapter(Context context, HistoryViewModel viewModel) {
         super(DIFF_CALLBACK);
         mContext = context;
+        historyViewModel = viewModel;
     }
 
 
@@ -32,9 +36,12 @@ public class HistoryAdapter extends PagedListAdapter<Record, HistoryViewHolder> 
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, int position) {
 
         Record record = getItem(position);
-        if (record != null)
+        if (record != null) {
             holder.updateView(record, mContext);
-
+            holder.itemView.setOnClickListener(v -> {
+                historyViewModel.getSelectRecord().setValue(record);
+            });
+        }
     }
 
     private static DiffUtil.ItemCallback<Record> DIFF_CALLBACK =

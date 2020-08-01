@@ -77,7 +77,7 @@ public class FileUtil {
     }
 
     public static Bitmap readImage(Context context, String filename) {
-        Bitmap bitmap = null;
+        Bitmap bitmap;
         try {
             FileInputStream fileInputStream = context.openFileInput(filename);
             bitmap = BitmapFactory.decodeStream(fileInputStream);

@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -17,11 +16,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.trackme.R;
 import com.example.trackme.model.Record;
 import com.example.trackme.model.RecordDetail;
-import com.example.trackme.services.LocationTrackService;
+import com.example.trackme.services.LocationTrackWithFuse;
 import com.example.trackme.utils.Constants;
 import com.example.trackme.utils.DateUtils;
 import com.example.trackme.utils.FileUtil;
@@ -58,18 +58,18 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
     int polylineNo = -1;
     int routeState = RecordDetail.STATE_START;
 
-    private LocationTrackService locationTrackService;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private LocationTrackWithFuse locationTrackService;
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.i(TAG, "Service connect");
-            locationTrackService = ((LocationTrackService.LocalBinder) service).getService();
+            locationTrackService = ((LocationTrackWithFuse.LocalBinder) service).getService();
             locationTrackService.startTimer();
             disposable = locationTrackService.observePressure().observeOn(AndroidSchedulers.mainThread()).subscribe(time ->
             {
                 Log.i(TAG, "DURATION :: " + time);
                 mTrackMe.getMapDuration().setValue(totalTime + time);
-                mTrackMe.getMapSpeed().setValue(Utils.avgSpeedKmH(Utils.avgSpeed(mTrackMe.getMapDistance().getValue(),mTrackMe.getMapDuration().getValue())));
+                mTrackMe.getMapSpeed().setValue(Utils.avgSpeedKmH(Utils.avgSpeed(mTrackMe.getMapDistance().getValue(), mTrackMe.getMapDuration().getValue())));
             });
             mBound = true;
         }
@@ -105,7 +105,8 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
-        if (PermissionUtils.isLocationPermissionGrant(this)) {
+        int i = mTrackMe.getViewMode().getValue() == null ? 0 : mTrackMe.getViewMode().getValue();
+        if (PermissionUtils.isLocationPermissionGrant(this) && i == TrackMeViewModel.STATUS_START_RECORD) {
             startService();
         } else {
             PermissionUtils.requestLocationPermission(this, REQUEST_LOCATION_PERMISSION_CODE);
@@ -115,13 +116,16 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onSnapshotReady(Bitmap bitmap) {
         FileUtil.writeImage(getApplicationContext(), bitmap, mRecordId);
+        resultForHistory(createRecord());
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_LOCATION_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startService();
+                int i = mTrackMe.getViewMode().getValue() == null ? 0 : mTrackMe.getViewMode().getValue();
+                if (i == TrackMeViewModel.STATUS_START_RECORD)
+                    startService();
             } else {
                 finish();
             }
@@ -129,22 +133,34 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void init() {
-
-        mRecordId = getIntent().getStringExtra(Constants.INTENT_KEY.SEASON_KEY);
-        if (TextUtils.isEmpty(mRecordId)) {
+        mTrackMe = new ViewModelProvider(this).get(TrackMeViewModel.class);
+        Record record = (Record) getIntent().getSerializableExtra(Constants.INTENT_KEY.SEASON_KEY);
+        if (record == null) {
             mRecordId = DateUtils.formatDateToRecordId(new Date());
-            updateTrackControl(TrackMeViewModel.STATUS_START_RECORD);
+            mTrackMe.getViewMode().setValue(TrackMeViewModel.STATUS_START_RECORD);
         } else {
-            updateTrackControl(TrackMeViewModel.STATUS_REVIEW);
+            updateForReview(record);
+            mTrackMe.getViewMode().setValue(TrackMeViewModel.STATUS_REVIEW);
+
         }
-        mTrackMe = new TrackMeViewModel(getApplication(), mRecordId);
-        mTrackMe.getListDetail().observe(this, this::updatePointList);
-        mTrackMe.getMapDuration().observe(this, this::updateDuration);
-        mTrackMe.getMapSpeed().observe(this, this::updateSpeed);
-        mTrackMe.getMapDistance().observe(this, this::updateDistance);
+        initViewModelUpdate();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.trackMap);
         if (mapFragment != null)
             mapFragment.getMapAsync(this);
+    }
+
+    private void initViewModelUpdate() {
+        mTrackMe.getListDetail(mRecordId).observe(this, this::updatePointList);
+        mTrackMe.getMapDuration().observe(this, this::updateDuration);
+        mTrackMe.getMapSpeed().observe(this, this::updateSpeed);
+        mTrackMe.getMapDistance().observe(this, this::updateDistance);
+        mTrackMe.getViewMode().observe(this, this::updateTrackControl);
+    }
+
+    private void updateForReview(Record record) {
+        mRecordId = record.getRecordId();
+        mTrackMe.getMapSpeed().setValue(record.getAvgSpeed());
+        mTrackMe.getMapDuration().setValue(record.getDuration());
     }
 
     @SuppressLint("MissingPermission")
@@ -153,11 +169,11 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
         polylineNo++;
 
         mGoogleMap.setMyLocationEnabled(true);
-        trackService = new Intent(getApplication(), LocationTrackService.class);
+        trackService = new Intent(getApplication(), LocationTrackWithFuse.class);
         trackService.putExtra(Constants.INTENT_KEY.SEASON_KEY, mRecordId);
         trackService.putExtra(Constants.INTENT_KEY.SEASON_SUB_KEY, polylineNo);
         startService(trackService);
-        bindService(trackService, serviceConnection, BIND_AUTO_CREATE);
+        bindService(trackService, mServiceConnection, BIND_AUTO_CREATE);
         mBound = true;
     }
 
@@ -174,7 +190,7 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
             stopService(trackService);
         }
         if (mBound) {
-            unbindService(serviceConnection);
+            unbindService(mServiceConnection);
             mBound = false;
         }
         if (mTrackMe.getMapDuration().getValue() != null)
@@ -220,11 +236,11 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
         options.color(Color.BLUE);
         for (int i = 0; i < list.size(); i++) {
             RecordDetail detail = list.get(i);
-            if (list.size() > 2 && i < list.size() - 1 && list.get(i).getRouteNo() == list.get(i + 1).getRouteNo()) {
-                totalDistance = Utils.distanceBetweenTwoPoint(list.get(i).getRouteLat(), list.get(i).getRouteLat(), list.get(i + 1).getRouteLat(), list.get(i + 1).getRouteLat());
+            if (list.size() >= 2 && i < list.size() - 1 && list.get(i).getRouteNo() == list.get(i + 1).getRouteNo()) {
+                totalDistance = totalDistance + Utils.distanceBetweenTwoPoint(list.get(i).getRouteLat(), list.get(i).getRouteLat(), list.get(i + 1).getRouteLat(), list.get(i + 1).getRouteLat());
             }
             if (detail.getRouteState() == RecordDetail.STATE_START) {
-                createMaker(mGoogleMap, detail.getRouteLat(), detail.getRouteLng());
+                createMaker(mGoogleMap, detail.getRouteLat(), detail.getRouteLng(), routeNo);
             }
             if (detail.getRouteNo() != routeNo) {
                 mGoogleMap.addPolyline(options);
@@ -258,32 +274,39 @@ public class TrackMeActivity extends AppCompatActivity implements OnMapReadyCall
     private void stopRecord() {
         mGoogleMap.snapshot(this);
         stopService();
-        float distance = mTrackMe.getMapDistance().getValue() == null ? 0 : mTrackMe.getMapDistance().getValue();
-        long duration = mTrackMe.getMapDuration().getValue() == null ? 0 : mTrackMe.getMapDuration().getValue();
-        Record record = new Record();
-        record.setRecordId(mRecordId);
-        record.setDistance(distance);
-        record.setDuration(duration);
-        record.setAvgSpeed(Utils.avgSpeed(distance,duration));
-        record.setInsertTime(System.currentTimeMillis());
-        record.setMapImageName(mRecordId);
+    }
+
+    private void pauseRecord() {
+        mTrackMe.getViewMode().setValue(TrackMeViewModel.STATUS_PAUSE);
+        stopService();
+    }
+
+    private void resumeRecord() {
+        mTrackMe.getViewMode().setValue(TrackMeViewModel.STATUS_START_RECORD);
+        startService();
+    }
+
+    private void resultForHistory(Record record) {
         Intent intent = new Intent();
         intent.putExtra(Constants.INTENT_KEY.RECORD_RESULT_KEY, record);
         setResult(RESULT_OK, intent);
         finish();
     }
 
-    private void pauseRecord() {
-        updateTrackControl(TrackMeViewModel.STATUS_PAUSE);
-        stopService();
+    private Record createRecord() {
+        float distance = mTrackMe.getMapDistance().getValue() == null ? 0 : mTrackMe.getMapDistance().getValue();
+        long duration = mTrackMe.getMapDuration().getValue() == null ? 0 : mTrackMe.getMapDuration().getValue();
+        Record record = new Record();
+        record.setRecordId(mRecordId);
+        record.setDistance(distance);
+        record.setDuration(duration);
+        record.setAvgSpeed(Utils.avgSpeed(distance, duration));
+        record.setInsertTime(System.currentTimeMillis());
+        record.setMapImageName(mRecordId);
+        return record;
     }
 
-    private void resumeRecord() {
-        updateTrackControl(TrackMeViewModel.STATUS_START_RECORD);
-        startService();
-    }
-
-    private void createMaker(GoogleMap map, double lat, double ln) {
+    private void createMaker(GoogleMap map, double lat, double ln, int polylineNo) {
         MarkerOptions options = new MarkerOptions();
         LatLng latLng = new LatLng(lat, ln);
         options.position(latLng);
